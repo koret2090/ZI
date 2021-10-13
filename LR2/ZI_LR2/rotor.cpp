@@ -1,31 +1,29 @@
 #include "rotor.h"
-#include <iostream>
 
 Rotor::Rotor()
 {
-    pairs = {{1,3},{5,20},{17,2},{2,15},{14,18},{8,1},
-            {12,13},{18,10},{9,5},{13,24},{3,19},{23,6},{6,17},{16,12},
-            {25,21},{15,26},{4,8},{10,25},{21,9},{26,14},{22,11},{19,16},
-            {11,23},{24,7},{7,4},{20,22}};
-
+    generatePairs();
     codePos = 0;
     decodePos = 0;
+
+    savePairs();
 }
 
 int Rotor::encode(int letter, int direction)
 {
     codePos++; // имитируем сдвиг ротора на 1 позицию
 
-    if (codePos > 26) // имитируем зацикливание
-        codePos -= 26;
+    if (codePos > PAIRS_SIZE) // имитируем зацикливание
+        codePos -= PAIRS_SIZE;
 
     // определим, какая буква (точнее ее порядковый номер) нам нужна.
     // Для этого сложим порядковый номер вводимой буквы и стартовую позицию.
+    cout << "AB " << letter << "|||" << codePos << endl;
     int search = cykleSearch(letter + codePos);
     cout << "CHECK1: " << search << endl;
     int result;
 
-    for(int i = 0; i < 26; i++)
+    for(int i = 0; i < PAIRS_SIZE; i++)
     {
         if (pairs[i][alterDirection(direction)] == search)
             result = pairs[i][direction];
@@ -39,8 +37,8 @@ int Rotor::decode(int letter, int direction)
 {
     decodePos++; // имитируем сдвиг ротора на 1 позицию
 
-    if (decodePos > 26) // имитируем зацикливание
-        decodePos -= 26;
+    if (decodePos > PAIRS_SIZE) // имитируем зацикливание
+        decodePos -= PAIRS_SIZE;
 
     int pos = decodePos; // присвоим позицию в переменную
 
@@ -52,13 +50,13 @@ int Rotor::decode(int letter, int direction)
         pos--;
 
     int result;
-    for(int i = 0; i < 26; i++)
+    for(int i = 0; i < PAIRS_SIZE; i++)
     {
         if (pairs[i][alterDirection(direction)] == letter)
         {
             result = pairs[i][direction] - pos; //возвращаем с вычетом стартовой позиции
             while (result <= 0)
-                result += 26;
+                result += PAIRS_SIZE;
         }
     }
 
@@ -72,7 +70,61 @@ int Rotor::alterDirection(int direction)
 
 int Rotor::cykleSearch(int search)
 {
-    while (search > 26)
-        search -= 26;
+    while (search > PAIRS_SIZE)
+        search -= PAIRS_SIZE;
     return search;
+}
+
+void Rotor::generatePairs()
+{
+    vector<int> pairsLeft(PAIRS_SIZE);
+    vector<int> pairsRight(PAIRS_SIZE);
+    for(int i = 0; i < PAIRS_SIZE; i++)
+    {
+        pairsLeft[i] = i;
+        pairsRight[i] = i;
+    }
+
+    srand(unsigned(time(0)));
+
+    while (!checkPairs(pairsLeft, pairsRight))
+    {
+        random_shuffle(pairsLeft.begin(), pairsLeft.end());
+        random_shuffle(pairsRight.begin(), pairsRight.end());
+    }
+
+    pairs = vector<vector<int>>(PAIRS_SIZE);
+    for (int i = 0; i < PAIRS_SIZE; i++)
+        pairs[i] = {0, 0};
+
+    for (int i = 0; i < PAIRS_SIZE; i++)
+    {
+        pairs[i][0] = pairsLeft[i];
+        pairs[i][1] = pairsRight[i];
+    }
+}
+
+int Rotor::checkPairs(vector<int>& pairsLeft, vector<int>& pairsRight)
+{
+    int checked = 1;
+    for (int i = 0; i < PAIRS_SIZE; i++)
+    {
+        if (pairsLeft[i] == pairsRight[i])
+        {
+            checked = 0;
+            break;
+        }
+    }
+
+    return checked;
+}
+
+void Rotor::savePairs()
+{
+    ofstream file("rotor1.txt");
+    for (int i = 0; i < PAIRS_SIZE; i++)
+    {
+        file << pairs[i][0] << "    " << pairs[i][1] << endl;
+    }
+    file.close();
 }

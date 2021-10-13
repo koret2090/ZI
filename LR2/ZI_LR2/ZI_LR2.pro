@@ -11,6 +11,7 @@ SOURCES += \
         stator.cpp
 
 HEADERS += \
+    generator.h \
     rotor.h \
     rotor2.h \
     rotor3.h \

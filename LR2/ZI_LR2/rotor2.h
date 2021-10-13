@@ -2,6 +2,7 @@
 #define ROTOR2_H
 
 #include <vector>
+#include "generator.h"
 
 using namespace std;
 
@@ -21,6 +22,10 @@ private:
     int alterDirection(int direction);
     int cykleSearch(int search);
     int cycleIteration(int iter);
+
+    void generatePairs();
+    int checkPairs(vector<int>& pairsLeft, vector<int>& pairsRight);
+    void savePairs();
 };
 
 

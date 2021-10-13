@@ -3,11 +3,8 @@
 
 Rotor3::Rotor3()
 {
-    pairs = {{24,19},{19,20},{5,13},{6,7},{2,5},{15,25},{8,17},
-            {9,4},{20,10},{12,11},{25,23},{11,6},{18,8},{23,2},
-            {21,16},{16,26},{26,1},{7,21},{3,3},{4,12},{14,15},
-            {22,9},{17,24},{13,22},{1,14},{10,18}};
-
+    generatePairs();
+    savePairs();
     codePos = 0;
     decodePos = 0;
 }
@@ -19,7 +16,7 @@ int Rotor3::encode(int letter, int direction)
     int search = cykleSearch(letter + cycleIteration(codePos));
     int result;
 
-    for(int i = 0; i < 26; i++)
+    for(int i = 0; i < PAIRS_SIZE; i++)
     {
         if (pairs[i][alterDirection(direction)] == search)
             result = pairs[i][direction];
@@ -43,14 +40,14 @@ int Rotor3::decode(int letter, int direction)
         pos--;
 
     int result;
-    for(int i = 0; i < 26; i++)
+    for(int i = 0; i < PAIRS_SIZE; i++)
     {
         if (pairs[i][alterDirection(direction)] == letter)
         {
             result = pairs[i][direction] - cycleIteration(pos); //возвращаем с вычетом стартовой позиции
-            //result %= 26;
+            //result %= PAIRS_SIZE;
             while (result <= 0)
-                result = result + 26;
+                result = result + PAIRS_SIZE;
         }
     }
 
@@ -64,18 +61,18 @@ int Rotor3::alterDirection(int direction)
 
 int Rotor3::cykleSearch(int search)
 {
-    while (search > 26)
-        search -= 26;
+    while (search > PAIRS_SIZE)
+        search -= PAIRS_SIZE;
     return search;
 }
 
 int Rotor3::cycleIteration(int iter)
 {
-    if (iter / 676 > 1) // 676 = 26 * 26
+    if (iter / (PAIRS_SIZE * PAIRS_SIZE) > 1) // 676 = PAIRS_SIZE * PAIRS_SIZE
     {
-        while (iter > 676)
+        while (iter > (PAIRS_SIZE * PAIRS_SIZE))
         {
-            iter /= 676;
+            iter /= (PAIRS_SIZE * PAIRS_SIZE);
         }
     }
     else
@@ -84,4 +81,58 @@ int Rotor3::cycleIteration(int iter)
     }
 
     return iter;
+}
+
+void Rotor3::generatePairs()
+{
+    vector<int> pairsLeft(PAIRS_SIZE);
+    vector<int> pairsRight(PAIRS_SIZE);
+    for(int i = 0; i < PAIRS_SIZE; i++)
+    {
+        pairsLeft[i] = i;
+        pairsRight[i] = i;
+    }
+
+    srand(unsigned(time(0)));
+
+    while (!checkPairs(pairsLeft, pairsRight))
+    {
+        random_shuffle(pairsLeft.begin(), pairsLeft.end());
+        random_shuffle(pairsRight.begin(), pairsRight.end());
+    }
+
+    pairs = vector<vector<int>>(PAIRS_SIZE);
+    for (int i = 0; i < PAIRS_SIZE; i++)
+        pairs[i] = {0, 0};
+
+    for (int i = 0; i < PAIRS_SIZE; i++)
+    {
+        pairs[i][0] = pairsLeft[i];
+        pairs[i][1] = pairsRight[i];
+    }
+}
+
+int Rotor3::checkPairs(vector<int>& pairsLeft, vector<int>& pairsRight)
+{
+    int checked = 1;
+    for (int i = 0; i < PAIRS_SIZE; i++)
+    {
+        if (pairsLeft[i] == pairsRight[i])
+        {
+            checked = 0;
+            break;
+        }
+    }
+
+    return checked;
+}
+
+void Rotor3::savePairs()
+{
+    ofstream file("rotor3.txt");
+    for (int i = 0; i < PAIRS_SIZE; i++)
+    {
+        file << pairs[i][0] << "    " << pairs[i][1] << endl;
+    }
+    file.close();
 }
