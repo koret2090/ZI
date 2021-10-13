@@ -4,7 +4,8 @@
 
 Stator::Stator()
 {
-    generatePairs();
+    //generatePairs();
+    loadPairs();
     savePairs();
 }
 
@@ -72,6 +73,21 @@ void Stator::savePairs()
     for (int i = 0; i < PAIRS_SIZE; i++)
     {
         file << pairs[i][0] << "    " << pairs[i][1] << endl;
+    }
+    file.close();
+}
+
+void Stator::loadPairs()
+{
+    pairs = vector<vector<int>>(PAIRS_SIZE);
+    for (int i = 0; i < PAIRS_SIZE; i++)
+        pairs[i] = {0, 0};
+
+    ifstream file("stator.txt");
+    for (int i = 0; i < PAIRS_SIZE; i++)
+    {
+        file >> pairs[i][0];
+        file >> pairs[i][1];
     }
     file.close();
 }

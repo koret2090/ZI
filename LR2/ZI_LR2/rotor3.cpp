@@ -3,7 +3,8 @@
 
 Rotor3::Rotor3()
 {
-    generatePairs();
+    //generatePairs();
+    loadPairs();
     savePairs();
     codePos = 0;
     decodePos = 0;
@@ -46,7 +47,7 @@ int Rotor3::decode(int letter, int direction)
         {
             result = pairs[i][direction] - cycleIteration(pos); //возвращаем с вычетом стартовой позиции
             //result %= PAIRS_SIZE;
-            while (result <= 0)
+            while (result < 0)
                 result = result + PAIRS_SIZE;
         }
     }
@@ -61,7 +62,7 @@ int Rotor3::alterDirection(int direction)
 
 int Rotor3::cykleSearch(int search)
 {
-    while (search > PAIRS_SIZE)
+    while (search >= PAIRS_SIZE)
         search -= PAIRS_SIZE;
     return search;
 }
@@ -70,7 +71,7 @@ int Rotor3::cycleIteration(int iter)
 {
     if (iter / (PAIRS_SIZE * PAIRS_SIZE) > 1) // 676 = PAIRS_SIZE * PAIRS_SIZE
     {
-        while (iter > (PAIRS_SIZE * PAIRS_SIZE))
+        while (iter >= (PAIRS_SIZE * PAIRS_SIZE))
         {
             iter /= (PAIRS_SIZE * PAIRS_SIZE);
         }
@@ -132,7 +133,22 @@ void Rotor3::savePairs()
     ofstream file("rotor3.txt");
     for (int i = 0; i < PAIRS_SIZE; i++)
     {
-        file << pairs[i][0] << "    " << pairs[i][1] << endl;
+        file << pairs[i][0] << " " << pairs[i][1] << endl;
+    }
+    file.close();
+}
+
+void Rotor3::loadPairs()
+{
+    pairs = vector<vector<int>>(PAIRS_SIZE);
+    for (int i = 0; i < PAIRS_SIZE; i++)
+        pairs[i] = {0, 0};
+
+    ifstream file("rotor3.txt");
+    for (int i = 0; i < PAIRS_SIZE; i++)
+    {
+        file >> pairs[i][0];
+        file >> pairs[i][1];
     }
     file.close();
 }

@@ -4,6 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
+        enigma.cpp \
         main.cpp \
         rotor.cpp \
         rotor2.cpp \
@@ -11,6 +12,7 @@ SOURCES += \
         stator.cpp
 
 HEADERS += \
+    enigma.h \
     generator.h \
     rotor.h \
     rotor2.h \

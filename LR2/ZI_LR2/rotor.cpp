@@ -2,7 +2,8 @@
 
 Rotor::Rotor()
 {
-    generatePairs();
+    //generatePairs();
+    loadPairs();
     codePos = 0;
     decodePos = 0;
 
@@ -13,14 +14,12 @@ int Rotor::encode(int letter, int direction)
 {
     codePos++; // имитируем сдвиг ротора на 1 позицию
 
-    if (codePos > PAIRS_SIZE) // имитируем зацикливание
+    if (codePos >= PAIRS_SIZE) // имитируем зацикливание
         codePos -= PAIRS_SIZE;
 
     // определим, какая буква (точнее ее порядковый номер) нам нужна.
     // Для этого сложим порядковый номер вводимой буквы и стартовую позицию.
-    cout << "AB " << letter << "|||" << codePos << endl;
     int search = cykleSearch(letter + codePos);
-    cout << "CHECK1: " << search << endl;
     int result;
 
     for(int i = 0; i < PAIRS_SIZE; i++)
@@ -28,7 +27,6 @@ int Rotor::encode(int letter, int direction)
         if (pairs[i][alterDirection(direction)] == search)
             result = pairs[i][direction];
     }
-    cout << "CHECK2: " << result << endl;
     return result;
 }
 
@@ -37,7 +35,7 @@ int Rotor::decode(int letter, int direction)
 {
     decodePos++; // имитируем сдвиг ротора на 1 позицию
 
-    if (decodePos > PAIRS_SIZE) // имитируем зацикливание
+    if (decodePos >= PAIRS_SIZE) // имитируем зацикливание
         decodePos -= PAIRS_SIZE;
 
     int pos = decodePos; // присвоим позицию в переменную
@@ -55,7 +53,7 @@ int Rotor::decode(int letter, int direction)
         if (pairs[i][alterDirection(direction)] == letter)
         {
             result = pairs[i][direction] - pos; //возвращаем с вычетом стартовой позиции
-            while (result <= 0)
+            while (result < 0)
                 result += PAIRS_SIZE;
         }
     }
@@ -70,7 +68,7 @@ int Rotor::alterDirection(int direction)
 
 int Rotor::cykleSearch(int search)
 {
-    while (search > PAIRS_SIZE)
+    while (search >= PAIRS_SIZE)
         search -= PAIRS_SIZE;
     return search;
 }
@@ -124,7 +122,22 @@ void Rotor::savePairs()
     ofstream file("rotor1.txt");
     for (int i = 0; i < PAIRS_SIZE; i++)
     {
-        file << pairs[i][0] << "    " << pairs[i][1] << endl;
+        file << pairs[i][0] << " " << pairs[i][1] << endl;
+    }
+    file.close();
+}
+
+void Rotor::loadPairs()
+{
+    pairs = vector<vector<int>>(PAIRS_SIZE);
+    for (int i = 0; i < PAIRS_SIZE; i++)
+        pairs[i] = {0, 0};
+
+    ifstream file("rotor1.txt");
+    for (int i = 0; i < PAIRS_SIZE; i++)
+    {
+        file >> pairs[i][0];
+        file >> pairs[i][1];
     }
     file.close();
 }

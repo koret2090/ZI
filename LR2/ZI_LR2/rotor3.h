@@ -26,6 +26,7 @@ private:
     void generatePairs();
     int checkPairs(vector<int>& pairsLeft, vector<int>& pairsRight);
     void savePairs();
+    void loadPairs();
 };
 
 #endif // ROTOR3_H
