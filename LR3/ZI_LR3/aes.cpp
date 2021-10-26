@@ -56,6 +56,8 @@ AES::AES()
     Nk = 4;
     Nb = 4;
     Nr = 10;
+
+    KeyExpansion();
 }
 
 
@@ -151,6 +153,16 @@ void AES::ByteMatrixCopy(vector<QByteArray> source, vector<QByteArray> dest)
     }
 }
 
+QByteArray AES::XorWord(QByteArray &word1, QByteArray &word2)
+{
+    QByteArray res;
+    for (int i = 0; i < 4; i++)
+    {
+        res.push_back(wordChanged[i] ^ word2[i]);
+    }
+    return res;
+}
+
 void AES::KeyExpansion()
 {
     for (int i = 0; i < Nk; i++)
@@ -160,16 +172,59 @@ void AES::KeyExpansion()
         {
             temp.append(Key[Nk * i + j]);
         }
-        KeySchedule.push_back(temp);
+        roundKey.push_back(temp);
     }
 
     for (int i = Nk; i < Nb * (Nr + 1); i++)
     {
-        //QByteArray temp = Key[];
-        QByteArray temp = KeySchedule[i - 1];
+        QByteArray temp = roundKey[i - 1];
         if (i % Nk == 0)
         {
+            LeftShiftRow(temp);
+            SubWord(temp);
+            temp = XorWord(temp, RCon[i / Nk]);
+        }
+        else if (Nk > 6 && (i % Nk == 4))
+        {
+            SubWord(temp);
+        }
+        roundKey[i] = XorWord(roundKey[i - Nk], temp);
+    }
+}
 
+void AES::AddRoundKey(vector<QByteArray> state, vector<QByteArray> key)
+{
+    for (int i = 0; i < STATE_STR_SIZE; i++)
+    {
+        for (int j = 0; j < STATE_STR_SIZE; j++)
+        {
+            state[i][j] = state[i][j] ^ key[i][j];
         }
     }
+
+}
+
+void AES::Encode()
+{
+    QFile file("aes.txt");
+    file.open(QIODevice::ReadOnly);
+    QByteArray in;
+    in = file.read(Nk * Nb);
+
+    vector<QByteArray> state = {QByteArrayLiteral("\x00\x00\x00\x00"),
+                             QByteArrayLiteral("\x00\x00\x00\x00"),
+                             QByteArrayLiteral("\x00\x00\x00\x00"),
+                             QByteArrayLiteral("\x00\x00\x00\x00")};
+
+    for (int i = 0; i < STATE_STR_SIZE; i++)
+    {
+        for (int j = 0; j < STATE_STR_SIZE; j++)
+        {
+            state[i][j] = in[i + j*4];
+        }
+    }
+
+    AddRoundKey()
+
+    file.close();
 }

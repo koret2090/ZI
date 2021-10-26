@@ -24,7 +24,7 @@ private:
     vector<QByteArray> C;
     vector<QByteArray> CReversed;
     vector<QByteArray> RCon;
-    vector<QByteArray> KeySchedule;
+    vector<QByteArray> roundKey;
     QByteArray Key;
     int Nk;
     int Nb;
@@ -43,6 +43,9 @@ private:
     void KeyExpansion();
     void SubWord(QByteArray& word);
     void RotWord(QByteArray& word);
+    QByteArray XorWord(QByteArray& word1, QByteArray& word2);
+
+    void Encode();
 
     void ByteMatrixCopy(vector<QByteArray> source, vector<QByteArray> dest);
 };
