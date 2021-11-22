@@ -1,8 +1,8 @@
 #include "aes.h"
-
-AES::AES()
+#include <QDebug>
+AES::AES(char key_str[17])
 {
-    SBox = {QByteArrayLiteral("\x63\x7C\x77\x7B\xF2\x6B\x6F\xC5\x30\x01\x67\x2B\xFE\xD7\xAB\x76"),
+    SBox = {QByteArray("\x63\x7C\x77\x7B\xF2\x6B\x6F\xC5\x30\x01\x67\x2B\xFE\xD7\xAB\x76"),
            QByteArrayLiteral("\xCA\x82\xC9\x7D\xFA\x59\x47\xF0\xAD\xD4\xA2\xAF\x9C\xA4\x72\xC0"),
            QByteArrayLiteral("\xB7\xFD\x93\x26\x36\x3F\xF7\xCC\x34\xA5\xE5\xF1\x71\xD8\x31\x15"),
            QByteArrayLiteral("\x04\xC7\x23\xC3\x18\x96\x05\x9A\x07\x12\x80\xE2\xEB\x27\xB2\x75"),
@@ -46,24 +46,32 @@ AES::AES()
                  QByteArrayLiteral("\x0D\x09\x0E\x0B"),
                  QByteArrayLiteral("\x0B\x0D\x09\x0E")};
 
-    RCon = {QByteArrayLiteral("\x8D\x01\x02\x04\x08\x10\x20\x40\x80\x1B\x36\x6C\xD8\xAB\x4D"),
-           QByteArrayLiteral("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"),
-           QByteArrayLiteral("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"),
-           QByteArrayLiteral("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")};
 
-    Key = QByteArrayLiteral("3rbek1hPYKLJuMVd");
+    RCon = {QByteArrayLiteral("x00\x00\x00\x00"),
+    QByteArrayLiteral("x01\x00\x00\x00"),
+    QByteArrayLiteral("x02\x00\x00\x00"),
+    QByteArrayLiteral("x04\x00\x00\x00"),
+    QByteArrayLiteral("x08\x00\x00\x00"),
+    QByteArrayLiteral("x10\x00\x00\x00"),
+    QByteArrayLiteral("x20\x00\x00\x00"),
+    QByteArrayLiteral("x40\x00\x00\x00"),
+    QByteArrayLiteral("x80\x00\x00\x00"),
+    QByteArrayLiteral("x1b\x00\x00\x00"),
+    QByteArrayLiteral("x36\x00\x00\x00")};
+
+    Key = QByteArray(key_str);
 
     Nk = 4;
     Nb = 4;
     Nr = 10;
-
+    qDebug() << Key[0];
     KeyExpansion();
 }
 
 
 
-void AES::SubBytes(vector<QByteArray> state)
-{
+void AES::SubBytes(vector<QByteArray>& state)
+{    
     for (int i = 0; i < STATE_STR_SIZE; i++)
     {
         SubWord(state[i]);
@@ -114,32 +122,33 @@ void AES::RotWord(QByteArray &word)
     LeftShiftRow(word);
 }
 
-void AES::MixColumns(vector<QByteArray> state)
+void AES::MixColumns(vector<QByteArray>& state)
 {
-    vector<QByteArray> res = {QByteArrayLiteral("\x00\x00\x00\x00"),
-                             QByteArrayLiteral("\x00\x00\x00\x00"),
-                             QByteArrayLiteral("\x00\x00\x00\x00"),
-                             QByteArrayLiteral("\x00\x00\x00\x00")};
-    /*
-    for (int i = 0; i < STATE_STR_SIZE; i++)
+    for (int i = 0; i < 4; i++)
     {
-        for (int j = 0; j < STATE_STR_SIZE; j++)
+        //QByteArray curCol = QByteArray("\x00\x00\x00\x00");
+        QByteArray curCol;
+        for (int j = 0; j < 4; j++)
         {
-            for (int k = 0; k < STATE_STR_SIZE; k++)
-                res[i][j] = res[i][j] + state[i][k] * C[k][j];
+            curCol[j] = state[i][j];
         }
-    }
-    */
 
-    for (int mix = 0; mix < STATE_STR_SIZE; mix++)
-    {
-        for(int i = 0; i < STATE_STR_SIZE; i++)
+        ///////////////////////////////
+        unsigned char a[4], b[4];
+        for (unsigned char c = 0; c < 4; c++)
         {
-            res[i][mix] = (C[i][0] * state[0][mix]) ^ (C[i][1] * state[1][mix]) ^ (C[i][2] * state[2][mix]) ^ (C[i][3] * state[3][mix]);
+            a[c] = curCol[c];
+            unsigned char h = (unsigned char)((signed char)curCol[c] >> 7);
+            b[c] = curCol[c] << 1;
+            b[c] ^= 0x1B & h;
         }
-    }
+        ////////////////////////////////
 
-    ByteMatrixCopy(res, state);
+        state[i][0] = b[0] ^ a[3] ^ a[2] ^ b[1] ^ a[1];    // 2a0 + a3 + a2 + 3a1
+        state[i][1] = b[1] ^ a[0] ^ a[3] ^ b[2] ^ a[2];    // 2a1 + a0 + a3 + 3a2
+        state[i][2] = b[2] ^ a[1] ^ a[0] ^ b[3] ^ a[3];    // 2a2 + a1 + a0 + 3a3
+        state[i][3] = b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0];    // 2a3 + a2 + a1 + 3a0
+    }
 }
 
 void AES::ByteMatrixCopy(vector<QByteArray> source, vector<QByteArray> dest)
@@ -158,13 +167,23 @@ QByteArray AES::XorWord(QByteArray &word1, QByteArray &word2)
     QByteArray res;
     for (int i = 0; i < 4; i++)
     {
-        res.push_back(wordChanged[i] ^ word2[i]);
+        res.push_back(word1[i] ^ word2[i]);
     }
     return res;
 }
 
+void AES::FillKey()
+{
+    for (int i = 0; i < Nb * (Nr + 1); i++)
+    {
+        roundKey.push_back(QByteArrayLiteral("\x00\x00\x00\x00"));
+    }
+}
+
 void AES::KeyExpansion()
 {
+    FillKey();
+
     for (int i = 0; i < Nk; i++)
     {
         QByteArray temp;
@@ -172,7 +191,7 @@ void AES::KeyExpansion()
         {
             temp.append(Key[Nk * i + j]);
         }
-        roundKey.push_back(temp);
+        roundKey[i] = temp;
     }
 
     for (int i = Nk; i < Nb * (Nr + 1); i++)
@@ -192,39 +211,229 @@ void AES::KeyExpansion()
     }
 }
 
-void AES::AddRoundKey(vector<QByteArray> state, vector<QByteArray> key)
+void AES::AddRoundKey(vector<QByteArray> &state, vector<QByteArray> &key, int roundIter)
 {
     for (int i = 0; i < STATE_STR_SIZE; i++)
     {
         for (int j = 0; j < STATE_STR_SIZE; j++)
         {
-            state[i][j] = state[i][j] ^ key[i][j];
+            state[i][j] = state[i][j] ^ key[4 * roundIter + i][j];
         }
     }
-
 }
 
-void AES::Encode()
+
+// Сделать циклом для всего большего файла
+void AES::Encode(string aesFile, string aesFileEncode)
 {
-    QFile file("aes.txt");
-    file.open(QIODevice::ReadOnly);
+    //для считывания
+    QFile fileRead(aesFile.c_str());
+    fileRead.open(QIODevice::ReadOnly);
     QByteArray in;
-    in = file.read(Nk * Nb);
 
-    vector<QByteArray> state = {QByteArrayLiteral("\x00\x00\x00\x00"),
-                             QByteArrayLiteral("\x00\x00\x00\x00"),
-                             QByteArrayLiteral("\x00\x00\x00\x00"),
-                             QByteArrayLiteral("\x00\x00\x00\x00")};
+    // для записи
+    QFile fileWrite(aesFileEncode.c_str());
+    fileWrite.open(QIODevice::WriteOnly); //поправить под Add
 
-    for (int i = 0; i < STATE_STR_SIZE; i++)
+    int lastSize = 16;
+    while (!fileRead.atEnd())
     {
-        for (int j = 0; j < STATE_STR_SIZE; j++)
+        in = fileRead.read(Nk * Nb);
+
+        state = {QByteArrayLiteral("\x00\x00\x00\x00"),
+                 QByteArrayLiteral("\x00\x00\x00\x00"),
+                 QByteArrayLiteral("\x00\x00\x00\x00"),
+                 QByteArrayLiteral("\x00\x00\x00\x00")};
+
+        // считываем state
+        for (int i = 0; i < STATE_STR_SIZE; i++)
         {
-            state[i][j] = in[i + j*4];
+            for (int j = 0; j < STATE_STR_SIZE; j++)
+            {
+                state[i][j] = in[i + j * 4];
+            }
         }
+
+        // шифруем
+        EncodeBlock();
+
+        QByteArray out;
+
+        for (unsigned int i = 0; i < state.size(); i++)
+        {
+            for (unsigned int j = 0; j < state.size(); j++)
+            {
+                out.push_back(state[j][i]);
+            }
+        }
+        fileWrite.write(out);
+    }
+    fileWrite.close();
+    fileRead.close();
+}
+
+void AES::EncodeBlock()
+{
+    AddRoundKey(state, roundKey, 0);
+
+    for (int round = 1; round < Nr; round++)
+    {
+        SubBytes(state);
+        ShiftRows(state);
+        MixColumns(state);
+        AddRoundKey(state, roundKey, round);
     }
 
-    AddRoundKey()
+    SubBytes(state);
+    ShiftRows(state);
+    AddRoundKey(state, roundKey, Nr);
+}
 
+void AES::InvSubBytes(vector<QByteArray>& state)
+{
+    for (int i = 0; i < STATE_STR_SIZE; i++)
+    {
+        InvSubWord(state[i]);
+    }
+}
+
+void AES::InvSubWord(QByteArray &word)
+{
+    for (int i = 0; i < word.size(); i++)
+    {
+        QByteArray byteNum;
+        byteNum.append(word[i]);
+
+        unsigned int num = byteNum.toHex().toUInt(nullptr, 16);
+
+        //byteNum[i] = byteNum[i] / 0x10;
+
+        unsigned int row = num / 16;
+        unsigned int col = num % 16;
+        word[i] = SBoxReversed[row][col];
+    }
+}
+
+void AES::InvShiftRows(vector<QByteArray>& state)
+{
+    for (int i = 1; i < STATE_STR_SIZE; i++)
+    {
+        for (int shifts = 0; shifts < i; shifts++)
+        {
+            RightShiftRow(state[i]);
+        }
+    }
+}
+
+void AES::RightShiftRow(QByteArray& row)
+{
+    QByteArray last;
+    last.append(row[row.size() - 1]);
+    for (int i = row.size() - 1; i > 0; i--)
+    {
+        row[i] = row[i - 1];
+    }
+    row[0] = last.back();
+}
+
+void AES::InvMixColumns(vector<QByteArray>& state)
+{
+    for (int i = 0; i < 4; i++) {
+        QByteArray curCol;
+        for (int j = 0; j < 4; j++)
+        {
+            curCol[j] = state[i][j];
+        }
+
+        state[i][0] = gMul(curCol[0], 14) ^ gMul(curCol[3], 9) ^ gMul(curCol[2], 13) ^ gMul(curCol[1], 11);
+        state[i][1] = gMul(curCol[1], 14) ^ gMul(curCol[0], 9) ^ gMul(curCol[3], 13) ^ gMul(curCol[2], 11);
+        state[i][2] = gMul(curCol[2], 14) ^ gMul(curCol[1], 9) ^ gMul(curCol[0], 13) ^ gMul(curCol[3], 11);
+        state[i][3] = gMul(curCol[3], 14) ^ gMul(curCol[2], 9) ^ gMul(curCol[1], 13) ^ gMul(curCol[0], 11);
+    }
+}
+
+unsigned char AES::gMul(unsigned char a, unsigned char b)
+{
+    unsigned char res = 0;
+    for (unsigned char counter = 0; counter < 8; counter++) {
+        if ((b & 1) == 1) {
+            res ^= a;
+        }
+
+        unsigned char h = static_cast<unsigned char>(a & 0x80);
+        a <<= 1;
+
+        if (h == 0x80) {
+            a ^= 0x1b;
+        }
+
+        b >>= 1;
+    }
+
+    return res;
+}
+
+void AES::Decode(string aesFileEncoded, string aesFileDecoded)
+{
+    //для считывания
+    QFile file(aesFileEncoded.c_str());
+    file.open(QIODevice::ReadOnly);
+    QByteArray in;
+
+    // для записи
+    QFile fileWrite(aesFileDecoded.c_str());
+    fileWrite.open(QIODevice::WriteOnly); //поправить под Add
+
+    int lastSize = 16;
+    while (!file.atEnd())
+    {
+        in = file.read(Nk * Nb);
+
+        state = {QByteArrayLiteral("\x00\x00\x00\x00"),
+                 QByteArrayLiteral("\x00\x00\x00\x00"),
+                 QByteArrayLiteral("\x00\x00\x00\x00"),
+                 QByteArrayLiteral("\x00\x00\x00\x00")};
+
+        // считываем state
+        for (int i = 0; i < STATE_STR_SIZE; i++)
+        {
+            for (int j = 0; j < STATE_STR_SIZE; j++)
+            {
+                state[i][j] = in[i + j * 4];
+            }
+        }
+
+        // шифруем
+        DecodeBlock();
+
+        QByteArray out;
+
+        for (unsigned int i = 0; i < state.size(); i++)
+        {
+            for (unsigned int j = 0; j < state.size(); j++)
+            {
+                out.push_back(state[j][i]);
+            }
+        }
+        fileWrite.write(out);
+    }
+    fileWrite.close();
     file.close();
+}
+
+void AES::DecodeBlock()
+{
+    AddRoundKey(state, roundKey, Nr);
+
+    for (int round = Nr - 1; round > 0; round--)
+    {
+        InvShiftRows(state);
+        InvSubBytes(state);
+        AddRoundKey(state, roundKey, round);
+        InvMixColumns(state);
+    }
+
+    InvShiftRows(state);
+    InvSubBytes(state);
+    AddRoundKey(state, roundKey, 0);
 }

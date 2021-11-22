@@ -16,9 +16,13 @@ using namespace std;
 class AES
 {
 public:
-    AES();
+    AES(char key_str[17]);
+    void Encode(string aesFile, string aesFileEncode);
+    void Decode(string aesFileEncoded, string aesFileDecoded);
 
 private:
+    vector<QByteArray> state;
+
     vector<QByteArray> SBox;
     vector<QByteArray> SBoxReversed;
     vector<QByteArray> C;
@@ -30,24 +34,35 @@ private:
     int Nb;
     int Nr;
 
-
-
     vector<QByteArray> input;
     void Cipher();
-    void AddRoundKey();
-    void SubBytes(vector<QByteArray> state);
+    void SubBytes(vector<QByteArray>& state);
     void ShiftRows(vector<QByteArray>& state);
     void LeftShiftRow(QByteArray& row);
-    void MixColumns(vector<QByteArray> state);
+    void MixColumns(vector<QByteArray>& state);
+    void EncodeBlock();
 
+    void FillKey();
     void KeyExpansion();
+    void AddRoundKey(vector<QByteArray> &state, vector<QByteArray> &key, int roundIter);
     void SubWord(QByteArray& word);
     void RotWord(QByteArray& word);
     QByteArray XorWord(QByteArray& word1, QByteArray& word2);
 
-    void Encode();
+
 
     void ByteMatrixCopy(vector<QByteArray> source, vector<QByteArray> dest);
+
+    void InvSubBytes(vector<QByteArray>& state);
+    void InvShiftRows(vector<QByteArray>& state);
+    void RightShiftRow(QByteArray& row);
+    void InvMixColumns(vector<QByteArray>& state);
+    unsigned char gMul(unsigned char a, unsigned char b);
+    void DecodeBlock();
+
+    void InvSubWord(QByteArray &word);
+
+
 };
 
 #endif // AES_H
