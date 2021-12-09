@@ -32,7 +32,7 @@ namespace ZI_LR5
             BinaryWriter writer = new BinaryWriter(new FileStream(filenameSignature, FileMode.Create));
             
             // рассказывам всем о своей подписи (закрытый ключ RSA - открытый для всех для подписи)
-            var key = cryptoProvider.ExportCspBlob(true);
+            var key = cryptoProvider.ExportCspBlob(false);
             writer.Write(key.Length);
             writer.Write(key);
 
