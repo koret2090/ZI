@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\User\\Source\\Repos\\ZI_LR4\\ZI_LR4.csproj": {}
+    "C:\\Users\\User\\Desktop\\sem7\\ZI\\ZI\\LR4\\ZI_LR4\\ZI_LR4.csproj": {}
   },
   "projects": {
-    "C:\\Users\\User\\Source\\Repos\\ZI_LR4\\ZI_LR4.csproj": {
+    "C:\\Users\\User\\Desktop\\sem7\\ZI\\ZI\\LR4\\ZI_LR4\\ZI_LR4.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\User\\Source\\Repos\\ZI_LR4\\ZI_LR4.csproj",
+        "projectUniqueName": "C:\\Users\\User\\Desktop\\sem7\\ZI\\ZI\\LR4\\ZI_LR4\\ZI_LR4.csproj",
         "projectName": "ZI_LR4",
-        "projectPath": "C:\\Users\\User\\Source\\Repos\\ZI_LR4\\ZI_LR4.csproj",
+        "projectPath": "C:\\Users\\User\\Desktop\\sem7\\ZI\\ZI\\LR4\\ZI_LR4\\ZI_LR4.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\User\\Source\\Repos\\ZI_LR4\\obj\\",
+        "outputPath": "C:\\Users\\User\\Desktop\\sem7\\ZI\\ZI\\LR4\\ZI_LR4\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

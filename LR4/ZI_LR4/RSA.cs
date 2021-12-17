@@ -22,7 +22,11 @@ namespace ZI_LR4
             n = p * q;
             phi = (p - 1) * (q - 1);
             publicKey = GeneratePublicKey(phi);
-            privateKey = GeneratePrivateKey(publicKey, phi);
+            GeneratePrivateKey(publicKey, phi, out int x, out int y);
+            privateKey = x;
+
+            if (privateKey < 0)
+                privateKey += phi;
         }
 
         public List<int> GeneratePrimeNumbers()
@@ -80,31 +84,19 @@ namespace ZI_LR4
             return num;
         }
 
-        public int GeneratePrivateKey(int publicKey, int phi)
+        public int GeneratePrivateKey(int a, int b, out int x, out int y)
         {
-            int t = 0;
-            int r = phi; // остаток от деления
-            int newt = 1;
-            int newr = publicKey;
-
-            while (newr != 0)
+            if (a == 0)
             {
-                int quotient = r / newr;
-                int tmpt = newt;
-                newt = t - quotient * newt;
-                t = tmpt;
-
-                int tmpr = newr;
-                newr = r - quotient * newr;
-                r = tmpr;
+                x = 0;
+                y = 1;
+                return b;
             }
 
-            if (r > 1)
-                return -1;
-            if (t < 0)
-                t += phi;
-
-            return t;
+            int d = GeneratePrivateKey(b % a, a, out var x1, out var y1);
+            x = y1 - (b / a) * x1;
+            y = x1;
+            return d;
         }
 
         public int Encrypt(int m)
